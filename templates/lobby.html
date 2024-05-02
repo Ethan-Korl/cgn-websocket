@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Lobby</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+    }
+    .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        background-color: #fff;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+    .message-area {
+        border: 1px solid #ced4da;
+        height: 300px;
+        overflow-y: scroll;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+    .message {
+        background-color: #ffffff;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    input[type="text"] {
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin: 0;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+    }
+    input[type="submit"] {
+        width: 100px;
+        padding: 10px;
+        margin-left: 700px;
+        margin-top: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    input[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="message-area" id="messageArea">
+        <!-- Messages will appear here -->
+    </div>
+    <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="Type your message...">
+        <input type="submit" value="Send">
+    </form>
+</div>
+
+<script>
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        //##########################################################
+        // Javascript websocket api to initiate the web socker connection
+        // need an endpiont to start the handshake
+        let websocketUrl = `ws://${window.location.host}/ws/socket-server/`
+
+        // use the web socket object to set the chat socket var and pass in the url
+        const chatSocket = new WebSocket(websocketUrl); 
+
+        // now that we have the instance or object we can use the message event to listen for
+        // messages from our backend(sever) this will fire off if our server send a message
+        // from the backend
+
+        chatSocket.onmessage = (e) => {
+            let data = JSON.parse(e.data);
+            let messageText =  data['message']
+            console.log("Data", data['message'])
+            appendMessage("You", messageText);
+        }
+        //#################################################################
+
+
+        var messageForm = document.getElementById("messageForm");
+        var messageInput = document.getElementById("messageInput");
+        var messageArea = document.getElementById("messageArea");
+
+        messageForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            var messageText = messageInput.value.trim();
+            if (messageText !== "") {
+                // send message to websocket server
+                chatSocket.send(JSON.stringify({
+                    'message':messageText,
+                }))
+                // appendMessage("You", messageText);
+                messageInput.value = "";
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }
+        });
+
+        function appendMessage(sender, message) {
+            var messageElement = document.createElement("div");
+            messageElement.classList.add("message");
+            messageElement.innerHTML = "<strong>" + sender + ":</strong> " + message;
+            messageArea.appendChild(messageElement);
+        }
+    });
+</script>
+
+<script>
+
+
+</script>
+</body>
+</html>
